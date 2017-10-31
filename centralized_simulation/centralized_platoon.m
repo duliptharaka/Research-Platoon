@@ -28,8 +28,7 @@ SF = 5;
 % Fuel consumption difference due to acceleration decisions
 % Lots of jitter is causing issues.
 % TODO: Units of the fuel_consumption function
-%accel_tolerance = 0.0005;
-accel_tolerance = 0;
+accel_tolerance = 0.0005;
 
 % Store the results of the simulation
 car_traveled = [];

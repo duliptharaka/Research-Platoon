@@ -25,6 +25,9 @@ lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag));
 w_1 = 1;
 w_2 = 1-w_1;
 SF = 5;
+
+sigma_a = 0.0005; % Actuator noise variance
+sigma_m = 0.0005; % Measurement noise variance
 % Fuel consumption difference due to acceleration decisions
 % Lots of jitter is causing issues.
 % TODO: Units of the fuel_consumption function
@@ -58,7 +61,7 @@ for car_idx=1:5
   % but it's easier to calculate distance 
   for i=2:size(v_profile,1) 
     % Solving the objective function based on infromation from time i - 1
-    optimal_a = w_1*(dist - SF)/(w_1/2 + 2*w_2);
+    optimal_a = w_1*(dist - SF)/(w_1/2 + 2*w_2) + normrnd(0,sigma_a);
     
     % High pass filter.
     if abs(optimal_a) < accel_tolerance
@@ -71,7 +74,7 @@ for car_idx=1:5
     % Following car's acceleration
     % Calculating distance at i+1
     dist = dist + distance(v_profile(i),v_profile(i-1),1);
-    dist = dist - (velocity + optimal_a/2);
+    dist = dist - (velocity + optimal_a/2) + normrnd(0,sigma_m);
     
     % Store the results of this step
     dist_traveled_vec = vertcat(dist_traveled_vec, (velocity + optimal_a/2));
@@ -121,7 +124,7 @@ set(gca, 'FontSize', 14,'linewidth',3,'fontname','times');
 xlabel('Time (s)','FontSize',14);
 ylabel('Velocity (m/s)','FontSize',14);
 legend('Car 0','location','eastoutside');
-%print(f1, 'media/part1.eps','-color', '-loose', '-deps');
+print(f1, 'figures/decentralized-noisy.eps','-color', '-loose', '-deps');
 
 
 f2 = figure;
