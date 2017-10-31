@@ -1,0 +1,18 @@
+# Created by Octave 4.2.1, Mon Oct 30 22:57:16 2017 EDT <jon@JON-ARCH-DESKTOP>
+# name: car_mpg
+# type: matrix
+# rows: 1
+# columns: 5
+ 23.02668231859617 23.09175798121598 23.14869143012287 23.20133942614518 23.25240033548454
+
+
+# name: mean_mpg
+# type: scalar
+23.14417429831295
+
+
+# name: improvement
+# type: scalar
+0.04982515879635115
+
+

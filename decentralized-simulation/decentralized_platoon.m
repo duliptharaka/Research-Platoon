@@ -19,10 +19,7 @@ for idx = 2:size(lead_velocity,1)
   lead_fuel_drag = vertcat(lead_fuel_drag,dc);
   lead_accel = vertcat(lead_accel,a);
 end
-sum(lead_fuel_drag)
-sum(lead_fuel)
-sum(lead_fuel_drag)/(sum(lead_fuel)+sum(lead_fuel_drag))
-lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag))
+lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag));
 
 % Simulation Variables
 w_1 = 1;
@@ -97,17 +94,16 @@ for car_idx=1:5
   
   car_mpg = horzcat(car_mpg, (sum(dist_traveled_vec)*0.000621371)/(sum(fuel_vec) + sum(fuel_drag_vec)));
   
-  sum(fuel_drag_vec)
-  sum(fuel_vec)
-  sum(fuel_drag_vec)/(sum(fuel_vec) + sum(fuel_drag_vec))
-  printf("---\n");
   % Set the new velocity profile
   v_profile = velocity_vec;
 end
 
 car_mpg
-mean(car_mpg)
-%improvements = (lead_mpg - car_mpg)./car_mpg
+mean_mpg = mean(car_mpg)
+
+improvement = (mean_mpg - lead_mpg)/mean_mpg;
+
+printf(sprintf("Improvement: %.2f%%%%\n", improvement*100));
 
 % Plotting
 f1 = figure;
