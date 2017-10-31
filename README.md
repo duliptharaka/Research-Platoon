@@ -1,6 +1,3 @@
 # Platoon
 
-### Note for the initial push:
-The code in the initial push is based on Yu's python code. The cost function is modified from the original and not been linearized. The problem she described below might be solved by linearizing the cost function.
-Below is copied from her notes:
->This version is Python-based. The reason to choose Python is that it is normally faster than Matlab. It is the same code as V2 using decentralized control. The issue with the python code is that the exponential function in the cost functions caused an overflow error. We tried both math.exp and numpy.exp, but they all have this error and stop the code in the middle of the iterations (in less than 100 seconds). Python library bigfloat with precision 100 has a better performance (stop in around 500 seconds), but still has an overflow issue. Also the bigfloat library makes the code very slow, which has a similar speed as the Matlab version. So there is no point of using Python, so we stop increasing the precision. But I suspect there is a precision (larger than 100) might make the code work.
+## A MATLAB/Octave-based approach to centralized and decentralized platooning.
