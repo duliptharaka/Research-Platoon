@@ -25,6 +25,9 @@ lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag));
 w_1 = 1;
 w_2 = 1-w_1;
 SF = 5;
+
+sigma_a = 0.0005; % Actuator noise variance
+sigma_m = 0.0005; % Measurement noise variance
 % Fuel consumption difference due to acceleration decisions
 % Lots of jitter is causing issues.
 % TODO: Units of the fuel_consumption function
@@ -58,7 +61,7 @@ for car_idx=1:5
   % but it's easier to calculate distance 
   for i=2:size(lead_velocity,1) 
     % Solving the objective function based on infromation from time i - 1
-    optimal_a = w_1*(dist - SF * car_idx)/(w_1/2 + 2*w_2);
+    optimal_a = w_1*(dist + normrnd(0,sigma_m)- SF * car_idx)/(w_1/2 + 2*w_2) + normrnd(0,sigma_a);
     
     % High pass filter.
     if abs(optimal_a) < accel_tolerance
