@@ -1,12 +1,4 @@
-function fc = fuel_consumption (a, v)
-%  C_d = 0.32; % Experimental Drag coefficient
-%  rho_a = 1.184; % Density of air at 25 deg C
-%  A_v = 2.5; % Cross-sectional area of the vehicle
-%  M = 1200; % Weight of the vehicle
-  % Apparent acceleration factoring in drag
-%  a_hat = a - (1/M)*(1/2)*air_drag(d_i)*C_d*rho_a*A_v*v^2
-%  a_hat = (1/M)*(1/2)*air_drag(d_i)*C_d*rho_a*A_v*v^2
-  
+function fc = fuel_consumption (a, v) 
   w1 = 0.442e-6;
   w2 = -5.67e-6;
   w3 = 1.166e-6;
