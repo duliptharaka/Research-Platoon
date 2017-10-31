@@ -12,5 +12,5 @@ function fc = fuel_consumption (a, v)
     fc = w1*v^2 + w2*a^2 + w3*v^2*a + w4*v*a^2 + w5*v*a + w6*v + w7*a + w8;
   else
     fc = 0;
-  endif
-endfunction
+  end
+return
