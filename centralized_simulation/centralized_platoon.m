@@ -25,6 +25,9 @@ lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag));
 w_1 = 1;
 w_2 = 1-w_1;
 SF = 5;
+
+sigma_a = 0.0005; % Actuator noise variance
+sigma_m = 0.0005; % Measurement noise variance
 % Fuel consumption difference due to acceleration decisions
 % Lots of jitter is causing issues.
 % TODO: Units of the fuel_consumption function
@@ -59,7 +62,9 @@ for car_idx=1:5
   for i=2:size(v_profile,1) 
     % Solving the objective function based on infromation from time i - 1
 %    optimal_a = w_1*(dist - SF)/(w_1/2 + 2*w_2);
-    optimal_a = v_profile(i) - v_profile(i-1);
+%    optimal_a = v_profile(i) - v_profile(i-1);
+    actual_a = lead_velocity(i) - lead_velocity(i-1);
+    optimal_a = (w_2*(dist - SF) - 2*w_1*actual_a)/(w_2/2 - 2*w_1) + normrnd(0,sigma_a);
     
     % High pass filter.
     if abs(optimal_a) < accel_tolerance
@@ -71,8 +76,8 @@ for car_idx=1:5
     % Calculate new distance given lead car's acceleration and
     % Following car's acceleration
     % Calculating distance at i+1
-%    dist = dist + distance(v_profile(i),v_profile(i-1),1);
-%    dist = dist - (velocity + optimal_a/2);
+    dist = dist + distance(v_profile(i),v_profile(i-1),1);
+    dist = dist - (velocity + optimal_a/2) + normrnd(0,sigma_m);
     
     % Store the results of this step
     dist_traveled_vec = vertcat(dist_traveled_vec, (velocity + optimal_a/2));
@@ -94,6 +99,9 @@ for car_idx=1:5
   car_accels = horzcat(car_accels,accel_vec);
   
   car_mpg = horzcat(car_mpg, (sum(dist_traveled_vec)*0.000621371)/(sum(fuel_vec) + sum(fuel_drag_vec)));
+  
+  % Set the new velocity profile
+  v_profile = velocity_vec;
 end
 
 car_mpg
