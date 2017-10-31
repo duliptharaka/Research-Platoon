@@ -43,22 +43,22 @@ for car_idx=1:5
   % Store the results for each car in a vector
   dist_traveled_vec = [];
   delta_dist_vec = [];
-  velocity_vec = [v_profile(1)];
+  velocity_vec = [lead_velocity(1)];
   accel_vec = [];
   fuel_vec = [];
   fuel_drag_vec = [];
   
   % Set the starting distance
-  dist = SF;
+  dist = SF * car_idx;
   % Set the starting velocity
-  velocity = v_profile(1);
+  velocity = lead_velocity(1);
 
   % Iterate through each timestep
   % This i is actually 'i+1'
   % but it's easier to calculate distance 
-  for i=2:size(v_profile,1) 
+  for i=2:size(lead_velocity,1) 
     % Solving the objective function based on infromation from time i - 1
-    optimal_a = w_1*(dist - SF)/(w_1/2 + 2*w_2);
+    optimal_a = w_1*(dist - SF * car_idx)/(w_1/2 + 2*w_2);
     
     % High pass filter.
     if abs(optimal_a) < accel_tolerance
@@ -70,7 +70,7 @@ for car_idx=1:5
     % Calculate new distance given lead car's acceleration and
     % Following car's acceleration
     % Calculating distance at i+1
-    dist = dist + distance(v_profile(i),v_profile(i-1),1);
+    dist = dist + distance(lead_velocity(i),lead_velocity(i-1),1);
     dist = dist - (velocity + optimal_a/2);
     
     % Store the results of this step
