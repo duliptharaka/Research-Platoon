@@ -25,7 +25,7 @@ sum(lead_fuel_drag)/(sum(lead_fuel)+sum(lead_fuel_drag))
 lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag))
 
 % Simulation Variables
-w_1 = .9999;
+w_1 = 1;
 w_2 = 1-w_1;
 SF = 5;
 % Fuel consumption difference due to acceleration decisions
@@ -61,7 +61,7 @@ for car_idx=1:5
   % but it's easier to calculate distance 
   for i=2:size(v_profile,1) 
     % Solving the objective function based on infromation from time i - 1
-    optimal_a = w_1*(SF - dist)/(2*w_2 - w_1/2);
+    optimal_a = w_1*(dist - SF)/(w_1/2 + 2*w_2);
     
     % High pass filter.
     if abs(optimal_a) < accel_tolerance
@@ -95,7 +95,7 @@ for car_idx=1:5
   car_vels = horzcat(car_vels,velocity_vec);
   car_accels = horzcat(car_accels,accel_vec);
   
-  car_mpg = horzcat(car_mpg, (sum(dist_traveled_vec)*0.000621371)/sum(fuel_vec));
+  car_mpg = horzcat(car_mpg, (sum(dist_traveled_vec)*0.000621371)/(sum(fuel_vec) + sum(fuel_drag_vec)));
   
   sum(fuel_drag_vec)
   sum(fuel_vec)
@@ -106,6 +106,7 @@ for car_idx=1:5
 end
 
 car_mpg
+mean(car_mpg)
 %improvements = (lead_mpg - car_mpg)./car_mpg
 
 % Plotting
