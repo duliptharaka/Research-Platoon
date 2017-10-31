@@ -1,0 +1,18 @@
+\documentclass[12pt]{standalone}
+\usepackage{varwidth}
+
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amsmath, amssymb, graphics, setspace}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+\newcounter{mathematicapage}
+
+\begin{document}
+   \begin{varwidth}{50in}
+        \begin{equation*}
+			L_i(t) = \underbrace{w_1 \int_{\Delta t} \frac{\textrm{Fuel}}{v_i(t)}}_\textrm{fuel consumption} + \underbrace{w_2 R_{\textrm{error}}^2 + w_6 R_{\textrm{error}'}^2}_\textrm{distance} + \underbrace{w_3(v_{i-1}(t+1) - v_{i}(t+1))^2}_\textrm{$\Delta$v between car\textsubscript{i-1} and car\textsubscript{i}} + \underbrace{w_4a_i^2(t)}_\textrm{acceleration} +\underbrace{ w_5(v_{i+1}(t+1) - v_{i}(t+1))^2}_\textrm{$\Delta$v between car\textsubscript{i} and car\textsubscript{i+1}}
+        \end{equation*}
+    \end{varwidth}
+\end{document}
