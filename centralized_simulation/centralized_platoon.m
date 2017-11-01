@@ -17,8 +17,9 @@ end
 lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag));
 
 % Simulation Variables
-w_1 = 0.5;
-w_2 = 1-w_1;
+w_1 = 0.3333;
+w_2 = 0.3333;
+w_3 = 0.3333;
 
 
 % Fuel consumption difference due to acceleration decisions
@@ -60,9 +61,23 @@ for car_idx=1:5
   for i=2:size(v_profile,1) 
     % Solving the objective function based on infromation from time i - 1
     actual_a = lead_accel(i-1); % Include control noise
-    dist = dist + distance(v_profile(i),v_profile(i-1),1);
-    optimal_a = (w_2*(dist  + normrnd(0,sigma_m) - SF - velocity) + 2*w_1*actual_a)/(w_2/2 + 2*w_1) + normrnd(0,sigma_a);
+    %dist = dist + distance(v_profile(i),v_profile(i-1),1);
+    %optimal_a = (w_2*(dist  + normrnd(0,sigma_m) - SF - velocity) + 2*w_1*actual_a)/(w_2/2 + 2*w_1) + normrnd(0,sigma_a);
+
+    A = lead_accel(i-1);
+    D = dist + distance(v_profile(i),v_profile(i-1),1) - SF - velocity + normrnd(0,sigma_m);
+    V = v_profile(i) - velocity + normrnd(0,sigma_m);
+
+    optimal_a = (4*A*w_1+2*D*w_2+4*V*w_3)/(4*w_1+w_2+4*w_3) + normrnd(0,sigma_a);
     
+    if optimal_a < -1
+      optimal_a = -1;
+    elseif optimal_a > 1
+      optimal_a = 1;
+    end
+
+
+      
     % High pass filter.
     if abs(optimal_a) < accel_tolerance
       optimal_a = 0;  
@@ -70,10 +85,16 @@ for car_idx=1:5
     
     % Calculate new velocity for i
     velocity = velocity + optimal_a;
+
+
+
+
+
+
     % Calculate new distance given lead car's acceleration and
     % Following car's acceleration
     % Calculating distance at i+1
-    %dist = dist + distance(v_profile(i),v_profile(i-1),1);
+    dist = dist + distance(v_profile(i),v_profile(i-1),1);
     dist = dist - (velocity - optimal_a/2);
 
     if dist < 0

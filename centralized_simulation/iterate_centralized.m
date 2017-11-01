@@ -6,10 +6,10 @@ close all;
 num_trials = 1;
 
 % Simulation variables
-sigma_a = 0.0000;
+sigma_a = 0.05;
 %sigma_c = 0.0005;
-sigma_c = 0.0000;
-sigma_m = 0.0000;
+sigma_c = 0.05;
+sigma_m = 0.05;
 SF = 5;
 
 car_mpgs = [];

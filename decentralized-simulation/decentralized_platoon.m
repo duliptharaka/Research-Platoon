@@ -17,8 +17,9 @@ end
 lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag));
 
 % Simulation Variables
-w_1 = 0.9;
-w_2 = 1-w_1;
+w_1 = 0.3333;
+w_2 = 0.3333;
+w_3 = 0.3333;
 
 % Fuel consumption difference due to acceleration decisions
 % Lots of jitter is causing issues.
@@ -56,8 +57,20 @@ for car_idx=1:5
   % but it's easier to calculate distance 
   for i=2:size(v_profile,1) 
     % Solving the objective function based on infromation from time i - 1
-    optimal_a = w_1*(dist + v_profile_lag(i-1) + normrnd(0,sigma_m) - SF - velocity)/(w_1/2 + 2*w_2) + normrnd(0,sigma_a);
+    %optimal_a = w_1*(dist + v_profile_lag(i-1) + normrnd(0,sigma_m) - SF - velocity)/(w_1/2 + 2*w_2) + normrnd(0,sigma_a);
     
+    A = v_profile_lag(i) - v_profile_lag(i-1);
+    D = dist + v_profile_lag(i-1) - SF - velocity + normrnd(0,sigma_m);
+    V =  + v_profile_lag(i) - velocity + normrnd(0,sigma_m);
+
+    optimal_a = (4*A*w_1+2*D*w_2+4*V*w_3)/(4*w_1+w_2+4*w_3) + normrnd(0,sigma_a);
+ 
+    if optimal_a < -1
+      optimal_a = -1;
+    elseif optimal_a > 1
+      optimal_a = 1;
+    end
+      
     % High pass filter.
     if abs(optimal_a) < accel_tolerance
       optimal_a = 0;  

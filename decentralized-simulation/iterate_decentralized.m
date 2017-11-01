@@ -6,8 +6,8 @@ close all;
 num_trials = 1;
 
 % Simulation variables
-sigma_a = 0;
-sigma_m = 0;
+sigma_a = 0.000;
+sigma_m = 0.000;
 SF = 5;
 
 car_mpgs = [];
