@@ -9,5 +9,5 @@ function fc = fuel_consumption_drag (a, v, d_i, delta_d)
     fc = (v^2*rho_a*C_d*A_v*drag_reduction_ratio(d_i)*delta_d)/(2*E_g*eta);
   else
     fc = 0;
-  endif
-endfunction
+  end
+return

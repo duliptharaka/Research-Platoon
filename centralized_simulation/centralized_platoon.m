@@ -17,7 +17,7 @@ end
 lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag));
 
 % Simulation Variables
-w_1 = 0.05;
+w_1 = 0.5;
 w_2 = 1-w_1;
 
 % Fuel consumption difference due to acceleration decisions
@@ -59,7 +59,8 @@ for car_idx=1:5
   for i=2:size(v_profile,1) 
     % Solving the objective function based on infromation from time i - 1
     actual_a = lead_accel(i-1); % Include control noise
-    optimal_a = (w_2*(dist  + normrnd(0,sigma_m) - SF) + 2*w_1*actual_a)/(w_2/2 + 2*w_1) + normrnd(0,sigma_a);
+    dist = dist + distance(v_profile(i),v_profile(i-1),1);
+    optimal_a = (w_2*(dist  + normrnd(0,sigma_m) - SF - velocity) + 2*w_1*actual_a)/(w_2/2 + 2*w_1) + normrnd(0,sigma_a);
     
     % High pass filter.
     if abs(optimal_a) < accel_tolerance
@@ -71,10 +72,10 @@ for car_idx=1:5
     % Calculate new distance given lead car's acceleration and
     % Following car's acceleration
     % Calculating distance at i+1
-    dist = dist + distance(v_profile(i),v_profile(i-1),1);
-    dist = dist - (velocity + optimal_a/2);
-    
-    if dist <= 0
+    %dist = dist + distance(v_profile(i),v_profile(i-1),1);
+    dist = dist - (velocity - optimal_a/2);
+
+    if dist < 0
       collisions = collisions + 1;
       dist = SF;
     end
@@ -112,21 +113,35 @@ car_results = vertcat(car_mpg,car_collisions);
 % Plotting
 % Comment out for MATLAB
 %graphics_toolkit('gnuplot');
-%f1 = figure;
-%subplot(2,1,2);
-%plot(car_accels, '-', 'linewidth',2);
-%axis([250 350 -1.5 1.5]);
-%set(gca, 'FontSize', 14,'linewidth',3,'fontname','times');
-%xlabel('Time (s)','FontSize',14);
-%ylabel('Acceleration (m/s^2)','FontSize',14);
-%legend('Car 1','Car 2', 'Car 3', 'Car 4', 'Car 5','location','eastoutside');
-%subplot(2,1,1);
-%plot(lead_velocity, '-', 'linewidth',2);
-%axis([250 350 0 30]);
-%set(gca, 'FontSize', 14,'linewidth',3,'fontname','times');
-%xlabel('Time (s)','FontSize',14);
-%ylabel('Velocity (m/s)','FontSize',14);
-%legend('Car 0','location','eastoutside');
+f1 = figure;
+subplot(4,1,3);
+plot(car_accels, '-', 'linewidth',0.1);
+axis([0 350 -1.5 1.5]);
+set(gca, 'FontSize', 14,'linewidth',3,'fontname','times');
+xlabel('Time (s)','FontSize',14);
+ylabel('Acceleration (m/s^2)','FontSize',14);
+legend('Car 1','Car 2', 'Car 3', 'Car 4', 'Car 5','location','eastoutside');
+subplot(4,1,4);
+plot(car_delta_dists, '-', 'linewidth',0.1);
+axis([0 350 -0.5 100.5]);
+set(gca, 'FontSize', 14,'linewidth',3,'fontname','times');
+xlabel('Time (s)','FontSize',14);
+ylabel('Delta Distance','FontSize',14);
+legend('Car 1','Car 2', 'Car 3', 'Car 4', 'Car 5','location','eastoutside');
+subplot(4,1,2);
+plot(car_vels, '-', 'linewidth',2);
+axis([0 350 0 30]);
+set(gca, 'FontSize', 14,'linewidth',3,'fontname','times');
+xlabel('Time (s)','FontSize',14);
+ylabel('Velocity (m/s)','FontSize',14);
+legend('Car 1','Car 2', 'Car 3', 'Car 4', 'Car 5','location','eastoutside');
+subplot(4,1,1);
+plot(lead_velocity, '-', 'linewidth',2);
+axis([0 350 0 30]);
+set(gca, 'FontSize', 14,'linewidth',3,'fontname','times');
+xlabel('Time (s)','FontSize',14);
+ylabel('Velocity (m/s)','FontSize',14);
+legend('Car 0','location','eastoutside');
 %print(f1, 'media/part1.eps','-color', '-loose', '-deps');
 
 
