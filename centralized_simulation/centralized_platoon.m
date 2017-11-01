@@ -1,4 +1,4 @@
-function car_results = centralized_platoon (sigma_a, sigma_c, sigma_m, SF)
+function car_results = centralized_platoon (sigma_a, sigma_c, sigma_m, SF)platoon.m
 load('velocity_profile_2016b.mat');
 lead_velocity = v_profile; 
 lead_fuel = [];
@@ -19,6 +19,7 @@ lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag));
 % Simulation Variables
 w_1 = 0.5;
 w_2 = 1-w_1;
+
 
 % Fuel consumption difference due to acceleration decisions
 % Lots of jitter is causing issues.
@@ -143,7 +144,6 @@ xlabel('Time (s)','FontSize',14);
 ylabel('Velocity (m/s)','FontSize',14);
 legend('Car 0','location','eastoutside');
 %print(f1, 'media/part1.eps','-color', '-loose', '-deps');
-
 
 %f2 = figure;
 %subplot(2,1,1);
