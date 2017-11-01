@@ -1,4 +1,4 @@
-function car_results = centralized_platoon (sigma_a, sigma_c, sigma_m, SF)platoon.m
+function car_results = centralized_platoon (sigma_a, sigma_c, sigma_m, SF)
 load('velocity_profile_2016b.mat');
 lead_velocity = v_profile; 
 lead_fuel = [];
