@@ -1,4 +1,4 @@
-function car_results = decentralized_platoon (sigma_a, sigma_m, SF)
+function car_results = decentralized_platoon (sigma_a, sigma_m, SF, if_plot)
 load('velocity_profile_2016b.mat');
 lead_velocity = v_profile; 
 lead_fuel = [];
@@ -14,7 +14,7 @@ for idx = 2:size(lead_velocity,1)
   lead_fuel_drag = vertcat(lead_fuel_drag,dc);
   lead_accel = vertcat(lead_accel,a);
 end
-lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag));
+lead_mpg = (lead_dist*0.000621371)/((sum(lead_fuel) + sum(lead_fuel_drag))*0.254172;
 
 % Simulation Variables
 w_1 = 0.3333;
@@ -30,8 +30,8 @@ accel_tolerance = 0.0005;
 car_traveled = [];
 car_fuel = [];
 car_delta_dists = [];
-car_vels = [];
-car_accels = [];
+car_vels = [v_profile];
+car_accels = [lead_accel];
 car_mpg = [];
 car_collisions = [];
 
@@ -59,23 +59,32 @@ for car_idx=1:5
     % Solving the objective function based on infromation from time i - 1
     %optimal_a = w_1*(dist + v_profile_lag(i-1) + normrnd(0,sigma_m) - SF - velocity)/(w_1/2 + 2*w_2) + normrnd(0,sigma_a);
     
-    A = v_profile_lag(i) - v_profile_lag(i-1);
+    A = v_profile_lag(i) - v_profile_lag(i-1) + normrnd(0,sigma_m);
     D = dist + v_profile_lag(i-1) - SF - velocity + normrnd(0,sigma_m);
     V =  + v_profile_lag(i) - velocity + normrnd(0,sigma_m);
 
-    optimal_a = (4*A*w_1+2*D*w_2+4*V*w_3)/(4*w_1+w_2+4*w_3) + normrnd(0,sigma_a);
+    optimal_a = (4*A*w_1+2*D*w_2+4*V*w_3)/(4*w_1+w_2+4*w_3);
  
-    if optimal_a < -1
-      optimal_a = -1;
-    elseif optimal_a > 1
-      optimal_a = 1;
-    end
       
     % High pass filter.
     if abs(optimal_a) < accel_tolerance
       optimal_a = 0;  
     end
-    
+    optimal_a = optimal_a + normrnd(0,sigma_a);
+    % Calculate new velocity for i
+
+
+
+    if optimal_a < -1
+      optimal_a = -1;
+    %elseif optimal_a > 0
+    %  optimal_a = sig(optimal_a)*2-1;
+    %end
+    elseif optimal_a > 1
+        optimal_a = 1;
+    end
+
+
     % Calculate new velocity for i
     velocity = velocity + optimal_a;
     % Calculate new distance given lead car's acceleration and
@@ -109,7 +118,7 @@ for car_idx=1:5
   car_accels = horzcat(car_accels,accel_vec);
   car_collisions = horzcat(car_collisions,collisions);
   
-  car_mpg = horzcat(car_mpg, (sum(dist_traveled_vec)*0.000621371)/(sum(fuel_vec) + sum(fuel_drag_vec)));
+  car_mpg = horzcat(car_mpg, (sum(dist_traveled_vec)*0.000621371)/((sum(fuel_vec) + sum(fuel_drag_vec))*0.254172));
   
   % Set the new velocity profile
   v_profile = velocity_vec;
@@ -125,35 +134,40 @@ car_results = vertcat(car_mpg,car_collisions);
 % Plotting
 % Comment out for MATLAB
 %graphics_toolkit('gnuplot');
+if if_plot
 f1 = figure;
-subplot(4,1,3);
-plot(car_accels, '-', 'linewidth',0.1);
-axis([0 350 -1.5 1.5]);
-set(gca, 'FontSize', 14,'linewidth',3,'fontname','times');
+set(f1,'Visible','off');
+subplot(3,1,3);
+plot(car_accels, '-', 'linewidth',0.2);
+axis([0 700 -1.2 1.2]);
+set(gca, 'FontSize', 14,'linewidth',0.2,'fontname','times');
 xlabel('Time (s)','FontSize',14);
 ylabel('Acceleration (m/s^2)','FontSize',14);
-legend('Car 1','Car 2', 'Car 3', 'Car 4', 'Car 5','location','eastoutside');
-subplot(4,1,4);
-plot(car_delta_dists, '-', 'linewidth',0.1);
-axis([0 350 -0.5 100.5]);
-set(gca, 'FontSize', 14,'linewidth',3,'fontname','times');
+legend('Car 0','Car 1','Car 2', 'Car 3', 'Car 4', 'Car 5','location','eastoutside');
+subplot(3,1,1);
+plot(car_delta_dists, '-', 'linewidth',0.2);
+axis([0 700 0 15]);
+set(gca, 'FontSize', 14,'linewidth',0.2,'fontname','times');
 xlabel('Time (s)','FontSize',14);
 ylabel('Delta Distance','FontSize',14);
 legend('Car 1','Car 2', 'Car 3', 'Car 4', 'Car 5','location','eastoutside');
-subplot(4,1,2);
-plot(car_vels, '-', 'linewidth',2);
-axis([0 350 0 30]);
-set(gca, 'FontSize', 14,'linewidth',3,'fontname','times');
+subplot(3,1,2);
+plot(car_vels, '-', 'linewidth',0.2);
+axis([0 700 0 40]);
+set(gca, 'FontSize', 14,'linewidth',0.2,'fontname','times');
 xlabel('Time (s)','FontSize',14);
 ylabel('Velocity (m/s)','FontSize',14);
-legend('Car 1','Car 2', 'Car 3', 'Car 4', 'Car 5','location','eastoutside');
-subplot(4,1,1);
-plot(lead_velocity, '-', 'linewidth',2);
-axis([0 350 0 30]);
-set(gca, 'FontSize', 14,'linewidth',3,'fontname','times');
-xlabel('Time (s)','FontSize',14);
-ylabel('Velocity (m/s)','FontSize',14);
-legend('Car 0','location','eastoutside');
+legend('Car 0','Car 1','Car 2', 'Car 3', 'Car 4', 'Car 5','location','eastoutside');
+f1.PaperPositionMode = 'auto';
+fig_pos = f1.PaperPosition;
+f1.PaperSize = [fig_pos(3) fig_pos(4)];
+file_name=sprintf('dec_m%0.2f_a%0.2f',sigma_a,sigma_m);
+path = 'figures/';
+%savefig([path, file_name, '.fig']);
+saveas(gcf,[path, file_name, '.pdf']);
+close(f1)
+set(f1,'Visible','on');
+end
 %print(f1, 'figures/decentralized-noisy.eps','-color', '-loose', '-deps');
 
 

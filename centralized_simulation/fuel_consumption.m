@@ -16,9 +16,9 @@ function fc = fuel_consumption (a, v)
   w7 = 82.426e-6;
   w8 = 185.360e-6;
   
-  if a > 0
+  %if a > 0
     fc = w1*v^2 + w2*a^2 + w3*v^2*a + w4*v*a^2 + w5*v*a + w6*v + w7*a + w8;
-  else
-    fc = 0;
+  if fc < 0.0015
+    fc = 0.0015;
   end
 return
