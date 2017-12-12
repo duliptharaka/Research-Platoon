@@ -14,7 +14,7 @@ for idx = 2:size(lead_velocity,1)
   lead_fuel_drag = vertcat(lead_fuel_drag,dc);
   lead_accel = vertcat(lead_accel,a);
 end
-lead_mpg = (lead_dist*0.000621371)/(sum(lead_fuel) + sum(lead_fuel_drag));
+lead_mpg = (lead_dist*0.000621371)/((sum(lead_fuel) + sum(lead_fuel_drag))*0.254172);
 
 % Simulation Variables
 w_1 = 0.25;
@@ -174,7 +174,6 @@ path = 'figures/';
 %savefig([path, file_name, '.fig']);
 saveas(gcf,[path, file_name, '.pdf']);
 close(f1)
-set(f1,'Visible','on');
 end
 %subplot(4,1,1);
 %plot(lead_velocity, '-', 'linewidth',2);
