@@ -27,7 +27,7 @@ class Simulator(object):
         actuator_noise_center=0,
         actuator_noise_sigma=0.0,
         safty_dist=5,
-        a_file='first_car_a2',
+        a_file='first_car_a10',
         delta_t = 0.1
         ):
         init_status = Status(safty_dist*(number_CentralizedFollowingCar+number_DecentralizedFollowingCar), 13.4112, 0)
