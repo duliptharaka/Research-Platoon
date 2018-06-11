@@ -23,18 +23,18 @@ class FilterBase():
             self.range_std = range_std
         points = MerweScaledSigmaPoints(n=3, alpha=.1, beta=2., kappa=-1.)
         self.kf = UnscentedKalmanFilter(3, 3, self.delta_t, fx=self.fx, hx=self.hx, points=points)
-        self.Q_factor = 5
-        self.Q_factor_power = 0
-        self.kf.Q = Q_discrete_white_noise(3, dt=self.delta_t, var=0.00001*(self.Q_factor**self.Q_factor_power))
+        self.Q_factor = 10
+        self.Q_factor_power = 1
+        self.kf.Q = Q_discrete_white_noise(3, dt=self.delta_t, var=1e-3)
         self.kf.R = np.diag([self.range_std**2,self.range_std**2,self.range_std**2])
         self.kf.x = array([float(self.system_measurement.d),
                            float(self.system_measurement.v),
                            float(self.system_measurement.a)])
-        self.kf.P *= 0.00001  # Covariance matrix
+        self.kf.P *= 10  # Covariance matrix
 
     def fx(self, x, dt):
         """State transition"""
-        F = eye(3) + array([[0, 1, 0.5],
+        F = eye(3) + array([[0, 1, 0.5 * dt],
                             [0, 0, 1],
                             [0, 0, 0]]) * dt
         return np.dot(F, x)
@@ -48,10 +48,11 @@ class FilterBase():
         y = self.kf.y
         S = self.kf.P + self.kf.R
         self.eps = np.dot(y.T, inv(S)).dot(y)
-        if self.eps > 3 and self.Q_factor_power <=10:
+        if self.eps > 4 and self.Q_factor_power <2:
             self.Q_factor_power += 1
             self.kf.Q *= self.Q_factor
-        elif self.eps <= 3 and self.Q_factor_power > 0:
+            #print(self.kf.Q,self.Q_factor)
+        elif self.eps <= 4 and self.Q_factor_power > 0:
             self.Q_factor_power -= 1
             self.kf.Q /= self.Q_factor
 
@@ -71,16 +72,16 @@ class Filter(FilterBase):
         z = array([float(self.system_measurement.d),
                    float(self.system_measurement.v),
                    float(self.system_measurement.a)])
-        try:
-            self.kf.predict()
-        except:
-            self.kf.P = eye(3)*0.00001
-            self.kf.predict()
         self.kf.update(z)
         self.update_Q()
         self.system_status.d = float(self.kf.x[0])
         self.system_status.v = float(self.kf.x[1])
         self.system_status.a = float(self.kf.x[2])
+        try:
+            self.kf.predict()
+        except:
+            self.kf.P = eye(3)*1e-10
+            self.kf.predict()
 
 
 class FrontCarFilter(FilterBase):
@@ -91,14 +92,14 @@ class FrontCarFilter(FilterBase):
         self.received_status = received_status
         points = MerweScaledSigmaPoints(n=3, alpha=.1, beta=2., kappa=-1.)
         self.kf = UnscentedKalmanFilter(3, 6, self.delta_t, fx=self.fx, hx=self.hx, points=points)
-        self.Q_factor = 5
-        self.Q_factor_power = 0
-        self.kf.Q = Q_discrete_white_noise(3, dt=self.delta_t, var=0.00001*(self.Q_factor**self.Q_factor_power))
+        self.Q_factor = 10
+        self.Q_factor_power = 1
+        self.kf.Q = Q_discrete_white_noise(3, dt=self.delta_t, var=1e-3)
         self.kf.R = np.diag([self.range_std**2,self.range_std**2,self.range_std**2,self.range_std**2,self.range_std**2,self.range_std**2])
         self.kf.x = array([float(self.system_measurement.d),
                            float(self.system_measurement.v),
                            float(self.system_measurement.a)])
-        self.kf.P *= 0.00001  # Covariance matrix
+        self.kf.P *= 10  # Covariance matrix
         self.H = np.concatenate((eye(3),eye(3)))
         self.HT = np.concatenate((eye(3),eye(3)),1)
 
@@ -110,10 +111,10 @@ class FrontCarFilter(FilterBase):
         y = self.kf.y
         S = np.dot(self.H,self.kf.P).dot(self.HT) + self.kf.R
         self.eps = np.dot(y.T, inv(S)).dot(y)
-        if self.eps > 3 and self.Q_factor_power <=10:
+        if self.eps > 4 and self.Q_factor_power <2:
             self.Q_factor_power += 1
             self.kf.Q *= self.Q_factor
-        elif self.eps <= 3 and self.Q_factor_power > 0:
+        elif self.eps <= 4 and self.Q_factor_power > 0:
             self.Q_factor_power -= 1
             self.kf.Q /= self.Q_factor
 
@@ -136,8 +137,8 @@ class FrontCarFilter(FilterBase):
             #print('z',z)
             pass
         self.update_Q()
-        self.kf.P += np.transpose(self.kf.P)
         self.kf.P /= 2
+        self.kf.P += np.transpose(self.kf.P)/2
         self.system_status.d = float(self.kf.x[0])
         self.system_status.v = float(self.kf.x[1])
         self.system_status.a = float(self.kf.x[2])

@@ -103,7 +103,7 @@ class DecentralizedFollowingCar(Car):
 
     def crash_rest(self):
         if self.front_car_ground_truth.d-self.ground_truth.d<=0:
-            self.ground_truth.d = self.front_car_ground_truth.d - 0.1
+            self.ground_truth.d = self.front_car_ground_truth.d - 0.01
             self.ground_truth.v = self.front_car_ground_truth.v
             self.ground_truth.a = self.front_car_ground_truth.a
             return True
@@ -187,11 +187,11 @@ class Sensor():
         Be careful not to modify the original value when add noise.
         """
         self.system_measurement.d = self.ground_truth.d + \
-            np.random.normal(0, self.sensor_noise_sigma) + self.sensor_noise_center
+            np.random.normal(self.sensor_noise_center, self.sensor_noise_sigma)
         self.system_measurement.v = self.ground_truth.v + \
-            np.random.normal(0, self.sensor_noise_sigma) + self.sensor_noise_center
+            np.random.normal(self.sensor_noise_center, self.sensor_noise_sigma)
         self.system_measurement.a = self.ground_truth.a + \
-            np.random.normal(0, self.sensor_noise_sigma) + self.sensor_noise_center
+            np.random.normal(self.sensor_noise_center, self.sensor_noise_sigma)
 
 
 class Actuator():
@@ -211,6 +211,6 @@ class Actuator():
         _a = min(1, max(_a, -1))
         if abs(_a)<0.0005:
             _a = 0.0
-        self.ground_truth.d += self.ground_truth.v * self.delta_t + 0.5 * _a * self.delta_t
+        self.ground_truth.d += self.ground_truth.v * self.delta_t + 0.5 * _a * self.delta_t * self.delta_t
         self.ground_truth.v += _a * self.delta_t
         self.ground_truth.a = _a

@@ -53,38 +53,56 @@ class BlackBox(object):
         if crashed:
             self.crash_counter += 1
 
-    def plot_record(self):
-        plt.figure(1)
-        plt.subplot(311)
-        plt.scatter(list(range(len(self.ground_truth_a))), self.ground_truth_a,marker='o', label='Real Acceleration')
-        plt.scatter(list(range(len(self.system_measurement_a))), self.system_measurement_a,marker='^', label='Measured Acceleration')
-        plt.scatter(list(range(len(self.estimated_system_status_a))), self.estimated_system_status_a,marker='x', label='Filtered Acceleration')
+    def _plot(self):
+        plt.figure()
+        plt.ion()
+        plt.show()
+        try:
+            self.front_car_ground_truth
+            plot_format = 400
+            plt.subplot(414)
+            plt.ylim(ymin=0,ymax=15)
+            plt.plot(list(range(len(self.ground_truth_delta_d))), self.ground_truth_delta_d,marker='o',linewidth=1, markersize=1, label='Real Distance')
+            plt.plot(list(range(len(self.system_measurement_delta_d))), self.system_measurement_delta_d,linestyle = 'None',marker='^', markersize=1, label='Measured Distance')
+            plt.plot(list(range(len(self.estimated_system_status_delta_d))), self.estimated_system_status_delta_d,marker='x',linewidth=1, markersize=1, label='Filtered Distance')
+            plt.legend()
+            plt.xlabel("Time (s)")
+            plt.ylabel("Delta Distance (m)")
+        except AttributeError:
+            plot_format = 300
+
+        plt.subplot(plot_format+11)
+        plt.ylim(ymin=-1,ymax=1)
+        plt.plot(list(range(len(self.ground_truth_a))), self.ground_truth_a,marker='o',linewidth=1, markersize=1, label='Real Acceleration')
+        plt.plot(list(range(len(self.system_measurement_a))), self.system_measurement_a,linestyle = 'None',marker='^', markersize=1, label='Measured Acceleration')
+        plt.plot(list(range(len(self.estimated_system_status_a))), self.estimated_system_status_a,marker='x',linewidth=1, markersize=1, label='Filtered Acceleration')
         plt.legend()
         plt.xlabel("Time (s)")
         plt.ylabel("Acceleration (m/s^2)")
 
-        plt.subplot(313)
-        plt.scatter(list(range(len(self.ground_truth_v))), self.ground_truth_v,marker='o', label='Real Acceleration')
-        plt.scatter(list(range(len(self.system_measurement_v))), self.system_measurement_v,marker='^', label='Measured Acceleration')
-        plt.scatter(list(range(len(self.estimated_system_status_v))), self.estimated_system_status_v,marker='x', label='Filtered Acceleration')
+        plt.subplot(plot_format+13)
+        plt.plot(list(range(len(self.ground_truth_v))), self.ground_truth_v,marker='o',linewidth=1, markersize=1, label='Real Speed')
+        plt.plot(list(range(len(self.system_measurement_v))), self.system_measurement_v,linestyle = 'None',marker='^', markersize=1, label='Measured Speed')
+        plt.plot(list(range(len(self.estimated_system_status_v))), self.estimated_system_status_v,marker='x',linewidth=1, markersize=1, label='Filtered Speed')
         plt.legend()
         plt.xlabel("Time (s)")
         plt.ylabel("Speed (m/s)")
 
-        plt.subplot(312)
+        plt.subplot(plot_format+12)
         plt.ylim(ymax=10)
         plt.plot(list(range(len(self.eps))), self.eps, label='eps')
         plt.legend()
         plt.xlabel("Time (s)")
+        return plt
 
-        #plt.subplot(313)
-        #plt.scatter(list(range(len(self.ground_truth_delta_d))), self.ground_truth_delta_d,marker='o', label='Real Acceleration')
-        #plt.scatter(list(range(len(self.system_measurement_delta_d))), self.system_measurement_delta_d,marker='^', label='Measured Acceleration')
-        #plt.scatter(list(range(len(self.estimated_system_status_delta_d))), self.estimated_system_status_delta_d,marker='x', label='Filtered Acceleration')
-        #plt.legend()
-        #plt.xlabel("Time (s)")
-        #plt.ylabel("Delta Distance (m)")
-        plt.show()
+    def plot_record(self):
+        plt = self._plot()
+        plt.draw()
+        plt.pause(0.001)
+
+    def save_plot(self,fname):
+        plt = self._plot()
+        plt.savefig(fname)
 
     def save_record(self, file_name='BlackBoxRecord.pdf'):
         pass
