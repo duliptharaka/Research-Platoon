@@ -1,5 +1,5 @@
 """
-Calculates the fuel in liter will used in the following one second.
+Calculates the fuel in liter will used in the following delta_t second.
 We use 2001 civic sedan as the reference car to adjust the following model.
 City 32 mpg/ hwy 39 mpg.
 Car fuel consumption when idle: https://www.energy.gov/eere/vehicles/fact-861-february-23-2015-idle-fuel-consumption-selected-gasoline-and-diesel-vehicles
@@ -12,10 +12,10 @@ At 55 mph, 20 deg C, the adjusted model have combined 34 mpg / hwy 38.8 mpg when
 
 
 def fuel_consumption(accelration, velocty, distance_to_front_car, delta_t):
-    __rho_a = 1.2  # Estimated ensity of air at 20 deg C above sea level
+    __rho_a = 1.2  # Estimated density of air at 20 deg C above sea level
     __CdA = 0.682  # Drag area in m^2 of the 2001 civic sedan https://en.wikipedia.org/wiki/Automobile_drag_coefficient
     __E_g = 34.8 * 1e6  # Energy J in a liter of gasoline  https://en.wikipedia.org/wiki/Fuel_efficiency
-    __eta = .295  # Estimated Civic energy efficiency (Cruise at 25m/s or 55mile/h will give 36mpg)
+    __eta = .295  # Estimated Civic energy efficiency (Cruise at 25m/s or 55mile/h will give 39mpg)
     __air_drag = (__rho_a * __CdA) / (2 * __E_g * __eta)
 
     _delta_d = velocty * delta_t + 0.5 * accelration * delta_t

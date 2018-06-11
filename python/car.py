@@ -19,12 +19,14 @@ class Status():
 class Car():
     """
     Car class
-    Car have GroundTruth, SystemStateEstimator
-    GroundTruth is the real real status
-    SystemStateEstimator is the status the car knows, this may be corrupted by sensor
+    Car have ground_truth, estimated_system_status, update_public_status()
+    ground_truth is the real real status
+    estimated_system_status is the status the car knows, this may be corrupted by sensor
     noise.
-    get_status this should return the the estimated_system_status, however, if the car
+    update_public_status() should return the the estimated_system_status, however, if the car
     is malicious, this function could return different value.
+    black_box records nearly everything. Including the fuel usage.
+    use functions provided by black_blox to absract or plot driving history.
     """
 
     def __init__(self,
@@ -172,7 +174,7 @@ class CentralizedFollowingCar(DecentralizedFollowingCar):
 
 class Sensor():
     """The sensor of a Car
-    Will store data influenced by noise
+    Add sensor noise and return noisy measurement.
     """
 
     def __init__(self, ground_truth, system_measurement, sensor_noise_center,sensor_noise_sigma):

@@ -87,9 +87,9 @@ class TestBed(object):
             print(fuel, crash)
             self.fuels.append(fuel)
             self.crashes.append(crash)
-
             #s.lc.black_box.plot_record()
             #s.platoon[2].black_box.plot_record()
+            s.platoon[2].black_box.save_plot('sensor_noise_sigma_{}.pdf'.format(str(sensor_noise_sigma)))
             
     def _plot(self):
         plt.figure()

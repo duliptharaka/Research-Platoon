@@ -12,7 +12,10 @@ from math import sqrt
 
 class FilterBase():
     """ Filter for one set of measurement
+    This is the base class, no filtering is actually applied.
+    This can be used to check the performance of the filter.
     """
+  
     def __init__(self, system_measurement, system_status, delta_t, range_std):
         self.system_measurement = system_measurement
         self.system_status = system_status
@@ -65,8 +68,12 @@ class FilterBase():
 
 class Filter(FilterBase):
     """ Filter for one set of measurement
-    https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python/blob/master/11-Extended-Kalman-Filters.ipynb
+    Unscented Kalman Filter:
+    https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python/blob/master/10-Unscented-Kalman-Filter.ipynb
+    Adjustable Process Noise for maneuvering detection:
+    https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python/blob/master/14-Adaptive-Filtering.ipynb
     """
+
 
     def update(self):
         z = array([float(self.system_measurement.d),
@@ -86,6 +93,8 @@ class Filter(FilterBase):
 
 class FrontCarFilter(FilterBase):
     """ Filter for two sets of measurement
+    Sensor Fusion:
+    https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python/blob/master/10-Unscented-Kalman-Filter.ipynb
     """
     def __init__(self, system_measurement, received_status, system_status, delta_t, range_std):
         super().__init__(system_measurement, system_status, delta_t, range_std)
