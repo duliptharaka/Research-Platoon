@@ -1,132 +1,138 @@
 #!/usr/bin/env python3
-
-from car import Status, LeadCar, DecentralizedFollowingCar, CentralizedFollowingCar
-from copy import copy, deepcopy
-from matplotlib import pyplot as plt
-
-def p_status(*statuses):
-    """simple helper function to print difference between several statuses"""
-    gt=statuses[0]
-    for i in range(1,len(statuses)):
-        print("{:10.4f},\t{:.4f},\t{:.4f}".format(statuses[i].d-gt.d, statuses[i].v-gt.v, statuses[i].a-gt.a))
-
-class Results(object):
-    """docstring for Results"""
-    def __init__(self, arg):
-        self.arg = arg
-    def plot_to_pdf(self):
-        pass
-
-class Noise():
-    def __init__(self, noise_sigma=0, noise_center=0):
-        self.noise_sigma=0
-        self.noise_center=0
-    def noise(self):
-        return np.random.normal(0, self.actuator_noise_sigma)
-
-        
+from noises import Noises
+from status import Status
+from vehicle import LeadVehicle, FollowingVehicle, LastVehicle
+from filter import *
+from platoon import CentralizedPlatoon, DecentralizedPlatoon
+import random
 
 class Simulator(object):
-    """Simulate Platoon"""
-    def __init__(self,
-        number_CentralizedFollowingCar=2,
-        number_DecentralizedFollowingCar=2,
-        sensor_noise_center=0,
-        sensor_noise_sigma=0.001,
-        actuator_noise_center=0,
-        actuator_noise_sigma=0.0,
-        safty_dist=5,
-        a_file='first_car_a10',
-        delta_t = 0.1
-        ):
-        init_status = Status(safty_dist*(number_CentralizedFollowingCar+number_DecentralizedFollowingCar), 13.4112, 0)
-        self.lc = LeadCar(deepcopy(init_status), delta_t, sensor_noise_center,sensor_noise_sigma, actuator_noise_center, actuator_noise_sigma, a_file)
-        self.platoon = []
-        pc = self.lc
-        for i in range(number_CentralizedFollowingCar):
-            init_status.d -= safty_dist
-            self.platoon.append(CentralizedFollowingCar(deepcopy(init_status), delta_t, sensor_noise_center,sensor_noise_sigma, actuator_noise_center, actuator_noise_sigma,  pc, safty_dist, self.lc))
-            pc = self.platoon[-1]
-        for i in range(number_DecentralizedFollowingCar):
-            init_status.d -= safty_dist
-            self.platoon.append(DecentralizedFollowingCar(deepcopy(init_status), delta_t, sensor_noise_center,sensor_noise_sigma, actuator_noise_center, actuator_noise_sigma,  pc, safty_dist))
-            pc = self.platoon[-1]
-    def run(self, steps=10):
+    """docstring for Simulator"""
+
+    def __init__(self, 
+        controller_type='c',  #  'c' or 'd'
+        platoon_sensor_nosie_matrix=None,  # number of following vehicles * nosies
+        platoon_actuator_noise_matrix=None,   # number of following vehicles * nosies
+        filter_type='ukf',    # 'ukf', 'no_filter', 'average', 'average_without_high_low'
+        acceleration_pattern_file='first_car_a10',
+        velocity_pattern_file='first_car_v',
+        delta_t=0.1,
+        safty_dist=1):
+
+        seed = random.randrange(4294967295)
+        np.random.seed(seed=seed)
+
+        self.controller_type = controller_type
+        if platoon_sensor_nosie_matrix is not None:
+            self.platoon_sensor_nosie_matrix = platoon_sensor_nosie_matrix
+        else:
+            self.platoon_sensor_nosie_matrix =  [
+                Noises([0.]*19,[1e-8]*13+[0.]*6),
+                Noises([0.]*19,[1e-8]*13+[0.]*6),
+                Noises([0.]*19,[1e-8]*13+[0.]*6),
+                Noises([0.]*11,[1e-8]*8+[0.]*3)
+            ]   # number of following vehicles * nosies
+        if platoon_actuator_noise_matrix is not None:
+            self.platoon_actuator_noise_matrix = platoon_actuator_noise_matrix
+        else:
+            self.platoon_actuator_noise_matrix = [
+                Noises([0.],[1e-8]),
+                Noises([0.],[1e-8]),
+                Noises([0.],[1e-8]),
+                Noises([0.],[1e-8])
+            ]   # number of following vehicles * nosies
+        self.filter_type = filter_type
+        self.delta_t = delta_t
+        self.safty_dist = safty_dist
+        self.platoon_length = len(self.platoon_sensor_nosie_matrix)
+        if self.platoon_length != len(self.platoon_actuator_noise_matrix):
+            print('platoon_sensor_nosie_matrix, and platoon_actuator_noise_matrix does not have the same length')
+
+    
+        self.acceleration_pattern = self.get_pattern_from_file(acceleration_pattern_file)#[0.0]*6990#
+        self.velocity_pattern = self.get_pattern_from_file(velocity_pattern_file)#[24.5872]*6990#
+
+        self.build_platoon()
+
+    def random_init(self,status_):
+        status_+= np.array([max(-1, np.random.normal()*0.1),max(-1,np.random.normal()*0.1),max(-1, np.random.normal()*0.1)])
+        return status_
+
+
+    def run(self,steps):
         for i in range(steps):
-            self.lc.update()
-            for c in self.platoon:
-                c.update()
+            self.platoon.update()
+
     def get_result(self):
-        """Returns MPG and average number of crashes per following car.
-        """
-        total_fuel_usage = 0 # Liter
-        total_travel_distance = 0 # Meter
-        total_crashes = 0
-        for c in self.platoon:
-            total_fuel_usage += c.black_box.fuel_consumption
-            total_travel_distance += c.black_box.travel_distance
-            total_crashes += c.black_box.crash_counter
-            #print(c.black_box.travel_distance, c.black_box.fuel_consumption)
+        return self.platoon.get_result()
 
-        return (total_travel_distance*0.0006213712)/(total_fuel_usage*0.2641720524),total_crashes/(len(self.platoon))
+    def get_pattern_from_file(self, file):
+        with open(file, 'r') as f:
+            return [float(line) for line in list(f)]
 
 
-class TestBed(object):
-    """Perform a set of simulations"""
-    def __init__(self):
-        self.fuels = [] # MPG
-        self.crashes = [] # Crashes per car
-
-        pass
-    def run(self):
-        for i in range(10):
-            sensor_noise_sigma = i*0.05
-            s = Simulator(sensor_noise_sigma=sensor_noise_sigma)
-            s.run(6990)
-            fuel, crash = s.get_result()
-            print(fuel, crash)
-            self.fuels.append(fuel)
-            self.crashes.append(crash)
-            #s.lc.black_box.plot_record()
-            #s.platoon[2].black_box.plot_record()
-            s.platoon[2].black_box.save_plot('sensor_noise_sigma_{}.pdf'.format(str(sensor_noise_sigma)))
-            
-    def _plot(self):
-        plt.figure()
-        plt.ion()
-        plt.show()
-
-        plt.subplot(211)
-        plt.plot(list(range(len(self.fuels))), self.fuels,linestyle = '-',marker='o', markersize=1)
-        plt.xlabel("Sensor Noise Sigma")
-        plt.ylabel("Fuel Consumption (MPG)")
-
-        plt.subplot(212)
-        plt.plot(list(range(len(self.crashes))), self.crashes,linestyle = '-',marker='o', markersize=1)
-        plt.xlabel("Sensor Noise Sigma")
-        plt.ylabel("Number of Crashes Per Following Car")
-
-        return plt
-
-    def plot_record(self):
-        plt = self._plot()
-        plt.draw()
-        plt.pause(0.001)
-
-    def save_plot(self,fname):
-        plt = self._plot()
-        plt.savefig(fname)
-
-
+    def build_platoon(self):
+    
+        vehicles=[None]*(self.platoon_length+1)
+    
+        init_status = Status((len(vehicles)-1)*self.safty_dist,self.velocity_pattern[0],self.acceleration_pattern[0])
+        vehicles[0] = LeadVehicle(init_status, self.acceleration_pattern, self.delta_t)
+        vehicles[0].filter = FilterBase(vehicles[0])
         
+        for i in range(1,len(vehicles)-1):
+            
+            init_status[0] -= self.safty_dist
+            init_status[1] = self.velocity_pattern[0]
+            init_status[2] = self.acceleration_pattern[0]
+            init_status = self.random_init(init_status)
+            observation_noises = self.platoon_sensor_nosie_matrix[i-1]
+            #Noises([unified_observation_noise_mean]*19,[unified_observation_noise_var]*11+[0]*8)
+            actuator_noise = self.platoon_actuator_noise_matrix[i-1]
+            #Noises([0],[0])
+            vehicles[i] = FollowingVehicle(init_status, observation_noises, actuator_noise, self.delta_t, self.safty_dist)
+            if self.filter_type == 'ukf':
+                vehicles[i].filter = FollowingVehicleUKF(vehicles[i])
+            elif self.filter_type == 'no_filter':
+                vehicles[i].filter = FollowingVehicleFilterBase(vehicles[i])
+            elif self.filter_type == 'average':
+                vehicles[i].filter = FollowingVehicleAverage(vehicles[i])
+            elif self.filter_type == 'average_without_high_low':
+                vehicles[i].filter = FollowingVehicleNoHLAverage(vehicles[i])
+
+
+    
+        init_status[0] -= self.safty_dist
+        init_status[1] = self.velocity_pattern[0]
+        init_status[2] = self.acceleration_pattern[0]
+        init_status = self.random_init(init_status)
+        observation_noises = self.platoon_sensor_nosie_matrix[-1]
+        #Noises([unified_observation_noise_mean]*11,[unified_observation_noise_var]*7+[0]*4)
+        actuator_noise = self.platoon_actuator_noise_matrix[-1]
+        #Noises([0],[0])
+        vehicles[-1] = LastVehicle(init_status, observation_noises, actuator_noise, self.delta_t, self.safty_dist)
+        if self.filter_type == 'ukf':
+            vehicles[-1].filter = LastVehicleUKF(vehicles[-1])
+        elif self.filter_type == 'no_filter':
+            vehicles[-1].filter = LastVehicleFilterBase(vehicles[-1])
+        elif self.filter_type == 'average':
+            vehicles[-1].filter = LastVehicleFilterAverage(vehicles[-1])
+        elif self.filter_type == 'average_without_high_low':
+            vehicles[-1].filter = LastVehicleFilterNoHLAverage(vehicles[-1])
+    
+        #print('platoon?',self.controller_type)
+        if self.controller_type == 'c':
+            self.platoon = CentralizedPlatoon(vehicles)
+        elif self.controller_type == 'd':
+            self.platoon = DecentralizedPlatoon(vehicles)
 
 if __name__ == '__main__':
-    t=TestBed()
-    t.run()
-    t.plot_record()
-    #s = Simulator(sensor_noise_sigma=0.1)
-    #s.run(699)
-    #s.lc.black_box.plot_record()
-    #s.platoon[3].black_box.plot_record()
-    #print(s.get_result())
+    s=Simulator()
+    s.run(6990)
+    #s.platoon.vehicles[1].show_plt()
+    #s.platoon.vehicles[2].show_plt()
+    #s.platoon.vehicles[3].show_plt()
+    s.platoon.vehicles[1].save_plt('example_v1.pdf')
+    s.platoon.vehicles[2].save_plt('example_v2.pdf')
+    s.platoon.vehicles[3].save_plt('example_v3.pdf')
+    print(s.platoon.get_result())
     input("Press Enter to exit...")
