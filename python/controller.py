@@ -60,42 +60,52 @@ class FollowingVehicleController():
     def __init__(self, vehicle):
         self.vehicle = vehicle
         self.H = self.vehicle.H
+        self.safty_dist = self.vehicle.safty_dist
         self.optimizer = Optimizer(vehicle.delta_t)
         self.next = self.vehicle.ground_truth[2]
 
     def update(self):
-        if (self.vehicle.estimated_status[0]-self.vehicle.following_estimated_status[0]) < (2*self.vehicle.safty_dist):
-            front_estimate = deepcopy(self.vehicle.front_estimated_status)
-            front_estimate[2] = self.vehicle.controller_acceleration_reference 
-            self_estimate = deepcopy(self.vehicle.estimated_status)
-            self_estimate[2] = 0
-            following_estimate = deepcopy(self.vehicle.following_estimated_status)
-            following_estimate[2] = self.vehicle.controller_acceleration_reference 
-            delta = self.H.dot((front_estimate+following_estimate)/2-self_estimate)
-            self.next = acceleration_bound(self.optimizer.dot(delta))
+        #if (self.vehicle.following_estimated_diff[0] < (2*self.vehicle.safty_dist)) and self.vehicle.front_estimated_diff[0] >= self.vehicle.safty_dist:
+        #front_estimate = deepcopy(self.vehicle.front_estimated_status)
+        #front_estimate[2] = self.vehicle.controller_acceleration_reference 
+        #self_estimate = deepcopy(self.vehicle.estimated_status)
+        #self_estimate[2] = 0
+        #following_estimate = deepcopy(self.vehicle.following_estimated_status)
+        #following_estimate[2] = self.vehicle.controller_acceleration_reference 
+        #delta = self.H.dot((front_estimate+following_estimate)/2-self_estimate)
+        #self.next = acceleration_bound(self.optimizer.dot(delta))
 
-        else:
-            front_estimate = deepcopy(self.vehicle.front_estimated_status)
-            front_estimate[2] = self.vehicle.controller_acceleration_reference 
-            self_estimate = deepcopy(self.vehicle.estimated_status)
-            self_estimate[2] = 0
-            delta = self.H.dot(front_estimate-self_estimate)
-            delta[0] -= self.vehicle.safty_dist
+        #else:
+        front_estimate_diff = deepcopy(self.vehicle.front_estimated_diff)
+        front_estimate_diff[2] = self.vehicle.controller_acceleration_reference 
+        delta_front = self.H.dot(front_estimate_diff)
+        delta_front[0] -= self.safty_dist
+
+
+        following_estimate_diff = deepcopy(self.vehicle.following_estimated_diff)
+        following_estimate_diff[2] = self.vehicle.controller_acceleration_reference 
+        delta_following = self.H.dot(following_estimate_diff)
+        delta_following[0] -= self.safty_dist
+
+        if 0 <= delta_front[0] and delta_following[0] < self.safty_dist:
+            delta = (delta_front+delta_following)/2
+            delta[2] = self.vehicle.controller_acceleration_reference
             self.next = acceleration_bound(self.optimizer.dot(delta))
+        else:
+            self.next = acceleration_bound(self.optimizer.dot(delta_front))
 
 class LastVehicleController():
     def __init__(self, vehicle):
         self.vehicle = vehicle
         self.H = self.vehicle.H
+        self.safty_dist = self.vehicle.safty_dist
         self.optimizer = Optimizer(vehicle.delta_t)
         #print(self.optimizer)
         self.next = self.vehicle.ground_truth[2]
 
     def update(self):
-        front_estimate = deepcopy(self.vehicle.front_estimated_status)
-        front_estimate[2] = self.vehicle.controller_acceleration_reference 
-        self_estimate = deepcopy(self.vehicle.estimated_status)
-        self_estimate[2] = 0
-        delta = self.H.dot(front_estimate-self_estimate)
-        delta[0] -= self.vehicle.safty_dist
+        front_estimate_diff = deepcopy(self.vehicle.front_estimated_diff)
+        front_estimate_diff[2] = self.vehicle.controller_acceleration_reference 
+        delta = self.H.dot(front_estimate_diff)
+        delta[0] -= self.safty_dist
         self.next = acceleration_bound(self.optimizer.dot(delta))

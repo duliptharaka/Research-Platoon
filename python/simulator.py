@@ -10,10 +10,10 @@ class Simulator(object):
     """docstring for Simulator"""
 
     def __init__(self, 
-        controller_type='c',  #  'c' or 'd'
+        controller_type='d',  #  'c' or 'd'
         platoon_sensor_nosie_matrix=None,  # number of following vehicles * nosies
         platoon_actuator_noise_matrix=None,   # number of following vehicles * nosies
-        filter_type='ukf',    # 'ukf', 'no_filter', 'average', 'average_without_high_low'
+        filter_type='no_filter',    # 'ukf', 'no_filter', 'average', 'average_without_high_low'
         acceleration_pattern_file='first_car_a10',
         velocity_pattern_file='first_car_v',
         delta_t=0.1,
@@ -27,10 +27,10 @@ class Simulator(object):
             self.platoon_sensor_nosie_matrix = platoon_sensor_nosie_matrix
         else:
             self.platoon_sensor_nosie_matrix =  [
-                Noises([0.]*19,[1e-8]*13+[0.]*6),
-                Noises([0.]*19,[1e-8]*13+[0.]*6),
-                Noises([0.]*19,[1e-8]*13+[0.]*6),
-                Noises([0.]*11,[1e-8]*8+[0.]*3)
+                Noises([0.]*21,[1e-8]*15+[0.]*6),
+                Noises([0.]*21,[1e-8]*15+[0.]*6),
+                Noises([0.]*21,[1e-8]*15+[0.]*6),
+                Noises([0.]*12,[1e-8]*9+[0.]*3)
             ]   # number of following vehicles * nosies
         if platoon_actuator_noise_matrix is not None:
             self.platoon_actuator_noise_matrix = platoon_actuator_noise_matrix
@@ -95,9 +95,9 @@ class Simulator(object):
             elif self.filter_type == 'no_filter':
                 vehicles[i].filter = FollowingVehicleFilterBase(vehicles[i])
             elif self.filter_type == 'average':
-                vehicles[i].filter = FollowingVehicleAverage(vehicles[i])
+                vehicles[i].filter = FollowingVehicleFilterAverage(vehicles[i])
             elif self.filter_type == 'average_without_high_low':
-                vehicles[i].filter = FollowingVehicleNoHLAverage(vehicles[i])
+                vehicles[i].filter = FollowingVehicleFilterNoHLAverage(vehicles[i])
 
 
     
@@ -127,12 +127,12 @@ class Simulator(object):
 
 if __name__ == '__main__':
     s=Simulator()
-    s.run(6990)
+    s.run(699)
+    print(s.platoon.get_result())
     #s.platoon.vehicles[1].show_plt()
     #s.platoon.vehicles[2].show_plt()
     #s.platoon.vehicles[3].show_plt()
     s.platoon.vehicles[1].save_plt('example_v1.pdf')
     s.platoon.vehicles[2].save_plt('example_v2.pdf')
     s.platoon.vehicles[3].save_plt('example_v3.pdf')
-    print(s.platoon.get_result())
     input("Press Enter to exit...")

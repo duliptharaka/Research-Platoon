@@ -123,8 +123,10 @@ class FollowingVehicle(VehicleBase):
         self.following_car.ground_truth[2],
         self.front_car.ground_truth[0]-self.ground_truth[0],
         self.front_car.ground_truth[1]-self.ground_truth[1],
+        self.front_car.ground_truth[2]-self.ground_truth[2],
         self.ground_truth[0]-self.following_car.ground_truth[0],
         self.ground_truth[1]-self.following_car.ground_truth[1],
+        self.ground_truth[2]-self.following_car.ground_truth[2],
         self.front_car.estimated_status[0],
         self.front_car.estimated_status[1],
         self.front_car.estimated_status[2],
@@ -163,16 +165,16 @@ class FollowingVehicle(VehicleBase):
         self.black_box['following_estimated_a'].append(self.following_estimated_status[2])
         self.black_box['real_front_distance'].append(self.front_car.ground_truth[0]-self.ground_truth[0])
         self.black_box['measured_front_distance'].append(self.z[9])
-        self.black_box['estimated_front_distance'].append(self.front_estimated_status[0]-self.estimated_status[0])
+        self.black_box['estimated_front_distance'].append(self.front_estimated_diff[0])
         self.black_box['real_front_v_difference'].append(self.front_car.ground_truth[1]-self.ground_truth[1])
         self.black_box['measured_front_v_difference'].append(self.z[10])
-        self.black_box['estimated_front_v_difference'].append(self.front_estimated_status[1]-self.estimated_status[1])
+        self.black_box['estimated_front_v_difference'].append(self.front_estimated_diff[1])
         self.black_box['real_following_distance'].append(self.ground_truth[0]-self.following_car.ground_truth[0])
-        self.black_box['measured_following_distance'].append(self.z[11])
-        self.black_box['estimated_following_distance'].append(self.estimated_status[0]-self.following_estimated_status[0])
+        self.black_box['measured_following_distance'].append(self.z[12])
+        self.black_box['estimated_following_distance'].append(self.following_estimated_diff[0])
         self.black_box['real_following_v_difference'].append(self.ground_truth[1]-self.following_car.ground_truth[1])
-        self.black_box['measured_following_v_difference'].append(self.z[12])
-        self.black_box['estimated_following_v_difference'].append(self.estimated_status[1]-self.following_estimated_status[1])
+        self.black_box['measured_following_v_difference'].append(self.z[13])
+        self.black_box['estimated_following_v_difference'].append(self.following_estimated_diff[1])
         self.black_box['reference_a'].append(self.controller_acceleration_reference)
         self.black_box['crashes'].append(1 if self.crashed else 0)
         self.black_box['rear_ended'].append(0)
@@ -198,6 +200,7 @@ class LastVehicle(VehicleBase):
         self.ground_truth[2],
         self.front_car.ground_truth[0]-self.ground_truth[0],
         self.front_car.ground_truth[1]-self.ground_truth[1],
+        self.front_car.ground_truth[2]-self.ground_truth[2],
         self.front_car.estimated_status[0],
         self.front_car.estimated_status[1],
         self.front_car.estimated_status[2]]) + self.observation_noises.mean + self.observation_noises.sigma * np.random.normal(size=len(self.observation_noises.sigma))
@@ -222,11 +225,11 @@ class LastVehicle(VehicleBase):
         self.black_box['estimated_v'].append(self.estimated_status[1])
         self.black_box['estimated_a'].append(self.estimated_status[2])
         self.black_box['real_front_distance'].append(self.front_car.ground_truth[0]-self.ground_truth[0])
-        self.black_box['estimated_front_distance'].append(self.front_estimated_status[0]-self.estimated_status[0])
+        self.black_box['estimated_front_distance'].append(self.front_estimated_diff[0])
         self.black_box['measured_front_distance'].append(self.z[6])
         self.black_box['real_front_v_difference'].append(self.front_car.ground_truth[1]-self.ground_truth[1])
         self.black_box['measured_front_v_difference'].append(self.z[7])
-        self.black_box['estimated_front_v_difference'].append(self.front_estimated_status[1]-self.estimated_status[1])
+        self.black_box['estimated_front_v_difference'].append(self.front_estimated_diff[1])
         self.black_box['reference_a'].append(self.controller_acceleration_reference)
         self.black_box['crashes'].append(1 if self.crashed else 0)
         self.black_box['fuel'].append(self.fuel)
