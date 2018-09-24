@@ -193,7 +193,7 @@ class FollowingVehicleUKF(FollowingVehicleFilterBase):
         self.kf.x = np.concatenate((self.vehicle.ground_truth,self.vehicle.ground_truth,self.vehicle.ground_truth))
         self.kf.x[0] += self.vehicle.safty_dist
         self.kf.x[6] -= self.vehicle.safty_dist
-        self.kf.P *= .1
+        self.kf.P *= max(self.vehicle.actuator_noise.sigma**2, 1e-16)
         #self.h = np.concatenate((eye(6),eye(6)))[:11]
         #self.ht = np.concatenate((eye(6),np.concatenate((eye(5),np.zeros([1,5])))),1)
 
@@ -314,7 +314,7 @@ class LastVehicleUKF(LastVehicleFilterAverage):
         self.kf.R *= max(np.median(self.vehicle.observation_noises.sigma**2),1e-16)
         self.kf.x = np.concatenate((self.vehicle.ground_truth,self.vehicle.ground_truth))
         self.kf.x[0] += self.vehicle.safty_dist
-        self.kf.P *= .1
+        self.kf.P *= max(self.vehicle.actuator_noise.sigma**2, 1e-16)
         #self.h = np.concatenate((eye(6),eye(6)))[:11]
         #self.ht = np.concatenate((eye(6),np.concatenate((eye(5),np.zeros([1,5])))),1)
 

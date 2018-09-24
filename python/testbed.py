@@ -95,18 +95,18 @@ class TestBed():
 
 def example(sample_file_name='example',steps=6990,epochs=50):
     simulator_args = (
-    'd', # 'c' ,'d'
+    'c', # 'c' ,'d'
     [
-        Noises([0.]*21,[0.5]*15+[0.]*6),
-        Noises([0.]*21,[0.5]*15+[0.]*6),
-        Noises([0.]*21,[0.5]*15+[0.]*6),
-        Noises([0.]*12,[0.5]*9+[0.]*3)
+        Noises([0.]*21,[0.0]*15+[0.]*6),
+        Noises([0.]*21,[0.0]*15+[0.]*6),
+        Noises([0.]*21,[0.0]*15+[0.]*6),
+        Noises([0.]*12,[0.0]*9+[0.]*3)
     ],
     [
-        Noises([0.],[0.]),
-        Noises([0.],[0.]),
-        Noises([0.],[0.]),
-        Noises([0.],[0.])
+        Noises([0.],[0.5]),
+        Noises([0.],[0.5]),
+        Noises([0.],[0.5]),
+        Noises([0.],[0.5])
     ],
     'ukf',    # 'ukf', 'no_filter', 'average', 'average_without_high_low'
     'first_car_a10',
@@ -117,6 +117,56 @@ def example(sample_file_name='example',steps=6990,epochs=50):
     tb =TestBed(simulator_args)
     mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci = tb.run(steps,epochs,sample_file_name)
     print(now(),mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci)
+
+
+def base_case(steps=6990,epochs=50):
+    pool = mp.Pool(min(50,mp.cpu_count())+2)
+    hostname = socket.gethostname()
+    hostid = int(hostname[4])-2
+
+    simulator_args_template = [
+    'd', # 'c' ,'d'
+    [
+        Noises([0.]*21,[0.]*15+[0.]*6),
+        Noises([0.]*21,[0.]*15+[0.]*6),
+        Noises([0.]*21,[0.]*15+[0.]*6),
+        Noises([0.]*12,[0.]*9+[0.]*3)
+    ],
+    [
+        Noises([0.],[0.]),
+        Noises([0.],[0.]),
+        Noises([0.],[0.]),
+        Noises([0.],[0.])
+    ],
+    'no_filter',    # 'ukf', 'no_filter', 'average', 'average_without_high_low'
+    'first_car_a10',
+    'first_car_v',
+    0.1,
+    1]
+
+
+    job_id = 0
+    for controller_type in ['c','d']:
+        for distance in [100,1]:
+            if np.rint(job_id%8) == hostid:
+                simulator_args = deepcopy(simulator_args_template)
+                simulator_args[0] = controller_type
+                simulator_args[7] = distance
+
+    
+
+                tb =TestBed(simulator_args)
+                mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci = tb.run(steps=6990,epochs=50,pool=pool,results_type='platoon')
+
+                print(now(),mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci)
+    
+                add_to_csv('08312018_base_line.csv','\t'.join([str(v) for v in [controller_type, str(distance), mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci]]))
+            job_id += 1
+    
+    pool.close()
+
+
+
 
 def add_to_csv(file_name, new_line):
     with open(file_name, 'a') as f:
@@ -327,8 +377,8 @@ def poor_car_run_on_cluster_one_malicious():
 
 
     types = {
-        #'sigma':[0.2,1],
-        'mean':[-0.5, 0.5]
+        'sigma':[0.2,1],
+        'mean':[-1,-0.5,-0.2,-0.1,0.1,0.2, 0.5,1]
     }
 
 
@@ -336,7 +386,7 @@ def poor_car_run_on_cluster_one_malicious():
 
 
     job_id = 0
-    for filter_type in ['ukf', 'no_filter', 'average', 'average_without_high_low']:
+    for filter_type in ['no_filter', 'average', 'average_without_high_low']:#'ukf']:#, 
         for controller_type in ['c','d']:
                 for sigma_mean in types:
                     for value in types[sigma_mean]:
@@ -353,7 +403,7 @@ def poor_car_run_on_cluster_one_malicious():
                                 mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci = tb.run(sample_file_name=file_name, steps=6990,epochs=50,pool=pool,results_type='platoon')
                                 print(now(),mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci)
         
-                                add_to_csv('08092018_massive.csv','\t'.join([str(v) for v in [filter_type, controller_type,str(poor_vehicle),sigma_mean,'actuator',str(value), mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci]]))
+                                add_to_csv('08272018_massive.csv','\t'.join([str(v) for v in [filter_type, controller_type,str(poor_vehicle),sigma_mean,'actuator',str(value), mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci]]))
                             job_id += 1
     
     pool.close()
@@ -389,9 +439,9 @@ def noise_vs_filter_run_on_cluster():
 
     job_id = 0
     for filter_type in ['ukf']:#['no_filter', 'ukf', 'average', 'average_without_high_low']:
-        for controller_type in ['c']:#,'d']:
+        for controller_type in ['c', 'd']:
             for controller_actuator in types:
-                for value in [0.13, 0.29]:#0.,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.2,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29,0.3,0.31,0.32,0.33,0.34,0.35,0.36,0.37,0.38,0.39,0.4,0.41,0.42,0.43,0.44,0.45,0.46,0.47,0.48,0.49]:
+                for value in [0.,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.2,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29,0.3,0.31,0.32,0.33,0.34,0.35,0.36,0.37,0.38,0.39,0.4,0.41,0.42,0.43,0.44,0.45,0.46,0.47,0.48,0.49]:
                     #print(job_id%8,hostid)
                     if job_id%8 == hostid:
                         #print('working...')
@@ -428,8 +478,9 @@ def noise_vs_filter_run_on_cluster():
 
 
 if __name__ == '__main__':
+    base_case()
     #single_lie_run_on_cluster()
-    #example('c_ukf_base_01_001',6990,50)
+    #example('c_ukf_base_actuator',6990,50)
     #noise_vs_filter_run_on_cluster()
     #single_lie_run_on_cluster_one_malicious()
-    poor_car_run_on_cluster_one_malicious()
+    #poor_car_run_on_cluster_one_malicious()
