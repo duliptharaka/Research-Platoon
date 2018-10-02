@@ -121,47 +121,37 @@ def example(sample_file_name='example',steps=6990,epochs=50):
 
 def base_case(steps=6990,epochs=50):
     pool = mp.Pool(min(50,mp.cpu_count())+2)
-    hostname = socket.gethostname()
-    hostid = int(hostname[4])-2
+    #hostname = socket.gethostname()
+    #hostid = int(hostname[4])-2
 
     simulator_args_template = [
-    'd', # 'c' ,'d'
+    'lead_vehicle_pattern', # 'c' ,'d'
     [
-        Noises([0.]*21,[0.]*15+[0.]*6),
-        Noises([0.]*21,[0.]*15+[0.]*6),
-        Noises([0.]*21,[0.]*15+[0.]*6),
-        Noises([0.]*12,[0.]*9+[0.]*3)
+        Noises([0.]*21,[0.1]*15+[0.]*6),
+        Noises([0.]*21,[0.1]*15+[0.]*6),
+        Noises([0.]*21,[0.1]*15+[0.]*6),
+        Noises([0.]*12,[0.1]*9+[0.]*3)
     ],
     [
-        Noises([0.],[0.]),
-        Noises([0.],[0.]),
-        Noises([0.],[0.]),
-        Noises([0.],[0.])
+        Noises([0.],[0.01]),
+        Noises([0.],[0.01]),
+        Noises([0.],[0.01]),
+        Noises([0.],[0.01])
     ],
     'no_filter',    # 'ukf', 'no_filter', 'average', 'average_without_high_low'
     'first_car_a10',
     'first_car_v',
     0.1,
     1]
-
-
-    job_id = 0
-    for controller_type in ['c','d']:
-        for distance in [100,1]:
-            if np.rint(job_id%8) == hostid:
-                simulator_args = deepcopy(simulator_args_template)
-                simulator_args[0] = controller_type
-                simulator_args[7] = distance
-
     
 
-                tb =TestBed(simulator_args)
-                mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci = tb.run(steps=6990,epochs=50,pool=pool,results_type='platoon')
+    tb =TestBed(simulator_args_template)
+    mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci = tb.run(steps=steps,epochs=epochs,pool=pool,results_type='platoon')
 
-                print(now(),mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci)
+    print(now(),mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci)
     
-                add_to_csv('08312018_base_line.csv','\t'.join([str(v) for v in [controller_type, str(distance), mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci]]))
-            job_id += 1
+    add_to_csv('10022018_base_line.csv','\t'.join([str(v) for v in ['lead_vehicle_pattern', 'platoon', '1', mpg_m,mpg_v,mpg_ci,crash_m,crash_v,crash_ci]]))
+
     
     pool.close()
 

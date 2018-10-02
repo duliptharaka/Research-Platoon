@@ -2,6 +2,7 @@
 from noises import Noises
 from status import Status
 from vehicle import LeadVehicle, FollowingVehicle, LastVehicle
+from controller import LeadVehicleController
 from filter import *
 from platoon import CentralizedPlatoon, DecentralizedPlatoon
 import random
@@ -10,7 +11,7 @@ class Simulator(object):
     """docstring for Simulator"""
 
     def __init__(self, 
-        controller_type='d',  #  'c' or 'd'
+        controller_type='d',  #  'c' or 'd' or 'lead_vehicle_pattern'
         platoon_sensor_nosie_matrix=None,  # number of following vehicles * nosies
         platoon_actuator_noise_matrix=None,   # number of following vehicles * nosies
         filter_type='no_filter',    # 'ukf', 'no_filter', 'average', 'average_without_high_low'
@@ -124,6 +125,13 @@ class Simulator(object):
             self.platoon = CentralizedPlatoon(vehicles)
         elif self.controller_type == 'd':
             self.platoon = DecentralizedPlatoon(vehicles)
+        elif self.controller_type == 'lead_vehicle_pattern':
+            self.platoon = CentralizedPlatoon(vehicles)
+            for i in range(1,len(vehicles)):
+                vehicles[i].controller == LeadVehicleController(vehicles[i], self.acceleration_pattern)
+
+
+
 
 if __name__ == '__main__':
     s=Simulator()
