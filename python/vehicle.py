@@ -74,6 +74,9 @@ class VehicleBase(object):
         total_crashes = sum(self.black_box['crashes'])+sum(self.black_box['rear_ended'])
         return mpg(total_travel_distance,total_fuel_usage),total_crashes
 
+    def save_black_box(self,fname):
+        data = pd.DataFrame(self.black_box)
+        data.to_csv(fname,'\t', None, '%.9f')
 
 
 
@@ -86,12 +89,12 @@ class LeadVehicle(VehicleBase):
     def update(self):
         self.estimated_status[2] = self.controller.next
         self.ground_truth[2] = self.controller.next
+        self.fuel = fuel_consumption(self.ground_truth[2], self.ground_truth[1], 99999, self.delta_t)
+        new_ground_truth=self.H.dot(self.ground_truth)
+        self.travel_distance = new_ground_truth[0]-self.ground_truth[0]
         self.ground_truth=self.H.dot(self.ground_truth)
 
     def crash_reset(self):
-        pass
-
-    def rear_ended(self):
         pass
 
     def get_reference_acceleration(self):
@@ -101,7 +104,17 @@ class LeadVehicle(VehicleBase):
         pass
 
     def record(self):
-        pass
+        self.black_box['real_d'].append(self.ground_truth[0])
+        self.black_box['real_v'].append(self.ground_truth[1])
+        self.black_box['real_a'].append(self.ground_truth[2])
+        self.black_box['following_real_d'].append(self.following_car.ground_truth[0])
+        self.black_box['following_real_v'].append(self.following_car.ground_truth[1])
+        self.black_box['following_real_a'].append(self.following_car.ground_truth[2])
+        self.black_box['real_following_distance'].append(self.ground_truth[0]-self.following_car.ground_truth[0])
+        self.black_box['real_following_v_difference'].append(self.ground_truth[1]-self.following_car.ground_truth[1])
+        self.black_box['rear_ended'].append(0)
+        self.black_box['fuel'].append(self.fuel)
+        self.black_box['travel_distance'].append(self.travel_distance)
 
 
 class FollowingVehicle(VehicleBase):

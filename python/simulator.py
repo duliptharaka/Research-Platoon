@@ -28,19 +28,19 @@ class Simulator(object):
             self.platoon_sensor_nosie_matrix = platoon_sensor_nosie_matrix
         else:
             self.platoon_sensor_nosie_matrix =  [
-                Noises([0.]*21,[1e-8]*15+[0.]*6),
-                Noises([0.]*21,[1e-8]*15+[0.]*6),
-                Noises([0.]*21,[1e-8]*15+[0.]*6),
-                Noises([0.]*12,[1e-8]*9+[0.]*3)
+                Noises([0.]*21,[0.1]*15+[0.]*6),
+                Noises([0.]*21,[0.1]*15+[0.]*6),
+                Noises([0.]*21,[0.1]*15+[0.]*6),
+                Noises([0.]*12,[0.1]*9+[0.]*3)
             ]   # number of following vehicles * nosies
         if platoon_actuator_noise_matrix is not None:
             self.platoon_actuator_noise_matrix = platoon_actuator_noise_matrix
         else:
             self.platoon_actuator_noise_matrix = [
-                Noises([0.],[1e-8]),
-                Noises([0.],[1e-8]),
-                Noises([0.],[1e-8]),
-                Noises([0.],[1e-8])
+                Noises([0.],[0.01]),
+                Noises([0.],[0.01]),
+                Noises([0.],[0.01]),
+                Noises([0.],[0.01])
             ]   # number of following vehicles * nosies
         self.filter_type = filter_type
         self.delta_t = delta_t
@@ -134,13 +134,18 @@ class Simulator(object):
 
 
 if __name__ == '__main__':
-    s=Simulator()
-    s.run(699)
+    s=Simulator(safty_dist=1)
+    s.run(6990)
     print(s.platoon.get_result())
     #s.platoon.vehicles[1].show_plt()
     #s.platoon.vehicles[2].show_plt()
     #s.platoon.vehicles[3].show_plt()
-    s.platoon.vehicles[1].save_plt('example_v1.pdf')
-    s.platoon.vehicles[2].save_plt('example_v2.pdf')
-    s.platoon.vehicles[3].save_plt('example_v3.pdf')
+    #s.platoon.vehicles[1].save_plt('example_v1.pdf')
+    #s.platoon.vehicles[2].save_plt('example_v2.pdf')
+    #s.platoon.vehicles[3].save_plt('example_v3.pdf')
+    s.platoon.vehicles[0].save_black_box('black_box_v0.csv')
+    s.platoon.vehicles[1].save_black_box('black_box_v1.csv')
+    s.platoon.vehicles[2].save_black_box('black_box_v2.csv')
+    s.platoon.vehicles[3].save_black_box('black_box_v3.csv')
+    s.platoon.vehicles[4].save_black_box('black_box_v4.csv')
     input("Press Enter to exit...")
