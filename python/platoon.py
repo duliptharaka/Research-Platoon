@@ -41,6 +41,7 @@ class CentralizedPlatoon(PlatoonBase):
             vehicle.filter.update()
 
         self.vehicles[0].controller.update()
+        vehicle[0].record()
 
         for vehicle in self.vehicles[1:]:
             vehicle.controller_acceleration_reference = self.vehicles[0].controller.next#0.5*(self.vehicles[0].controller.next + vehicle.front_estimated_status[2])
@@ -53,7 +54,7 @@ class CentralizedPlatoon(PlatoonBase):
 
         for vehicle in self.vehicles[1:]:
             vehicle.crash_reset()
-            
+
         for vehicle in self.vehicles:
             vehicle.filter.predict()
         #for vehicle in self.vehicles:

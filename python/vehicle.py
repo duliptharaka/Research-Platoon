@@ -250,12 +250,3 @@ class LastVehicle(VehicleBase):
         self.crashed = False
 
 
-
-    def get_result(self):
-        """Returns MPG and number of crashes.
-        """
-        total_fuel_usage = sum(self.black_box['fuel']) # Liter
-        total_travel_distance = sum(self.black_box['travel_distance']) # Meter
-        total_crashes = sum(self.black_box['crashes'])
-        return mpg(total_travel_distance,total_fuel_usage),total_crashes
-
