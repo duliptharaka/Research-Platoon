@@ -66,14 +66,6 @@ class VehicleBase(object):
         save_plt_black_box(fname, pd.DataFrame(self.black_box))
 
 
-    def get_result(self):
-        """Returns MPG and number of crashes.
-        """
-        total_fuel_usage = sum(self.black_box['fuel']) # Liter
-        total_travel_distance = sum(self.black_box['travel_distance']) # Meter
-        total_crashes = sum(self.black_box['crashes'])+sum(self.black_box['rear_ended'])
-        return mpg(total_travel_distance,total_fuel_usage),total_crashes
-
     def save_black_box(self,fname):
         data = pd.DataFrame(self.black_box)
         data.to_csv(fname,'\t', None, '%.9f')
@@ -93,6 +85,17 @@ class LeadVehicle(VehicleBase):
         new_ground_truth=self.H.dot(self.ground_truth)
         self.travel_distance = new_ground_truth[0]-self.ground_truth[0]
         self.ground_truth=self.H.dot(self.ground_truth)
+
+
+
+    def get_result(self):
+        """Returns MPG and number of crashes.
+        """
+        total_fuel_usage = sum(self.black_box['fuel']) # Liter
+        total_travel_distance = sum(self.black_box['travel_distance']) # Meter
+        total_crashes = sum(self.black_box['rear_ended'])
+
+        return mpg(total_travel_distance,total_fuel_usage),total_crashes
 
     def crash_reset(self):
         pass
@@ -122,6 +125,17 @@ class FollowingVehicle(VehicleBase):
         super(FollowingVehicle, self).__init__(initial_status, observation_noises, actuator_noise, delta_t, safty_dist)
         self.filter = None
         self.controller = FollowingVehicleController(self)
+
+
+    def get_result(self):
+        """Returns MPG and number of crashes.
+        """
+        total_fuel_usage = sum(self.black_box['fuel']) # Liter
+        total_travel_distance = sum(self.black_box['travel_distance']) # Meter
+        total_crashes = sum(self.black_box['crashes'])+sum(self.black_box['rear_ended'])
+
+        return mpg(total_travel_distance,total_fuel_usage),total_crashes
+
 
     def observe(self):
         self.z=np.array([
@@ -202,6 +216,17 @@ class LastVehicle(VehicleBase):
         super(LastVehicle, self).__init__(initial_status, observation_noises, actuator_noise, delta_t, safty_dist)
         self.filter = None
         self.controller = LastVehicleController(self)
+
+
+    def get_result(self):
+        """Returns MPG and number of crashes.
+        """
+        total_fuel_usage = sum(self.black_box['fuel']) # Liter
+        total_travel_distance = sum(self.black_box['travel_distance']) # Meter
+        total_crashes = sum(self.black_box['crashes'])
+
+        return mpg(total_travel_distance,total_fuel_usage),total_crashes
+
 
     def observe(self):
         self.z=np.array([

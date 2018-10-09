@@ -134,7 +134,7 @@ class Simulator(object):
 
 
 if __name__ == '__main__':
-    s=Simulator(safty_dist=1)
+    s=Simulator(controller_type='c',safty_dist=1)
     s.run(6990)
     print(s.platoon.get_result())
     #s.platoon.vehicles[1].show_plt()
@@ -143,9 +143,15 @@ if __name__ == '__main__':
     #s.platoon.vehicles[1].save_plt('example_v1.pdf')
     #s.platoon.vehicles[2].save_plt('example_v2.pdf')
     #s.platoon.vehicles[3].save_plt('example_v3.pdf')
-    s.platoon.vehicles[0].save_black_box('black_box_v0.csv')
-    s.platoon.vehicles[1].save_black_box('black_box_v1.csv')
-    s.platoon.vehicles[2].save_black_box('black_box_v2.csv')
-    s.platoon.vehicles[3].save_black_box('black_box_v3.csv')
-    s.platoon.vehicles[4].save_black_box('black_box_v4.csv')
+
+    print(s.platoon.vehicles[0].get_result())
+    print(s.platoon.vehicles[1].get_result())
+    print(s.platoon.vehicles[2].get_result())
+    print(s.platoon.vehicles[3].get_result())
+    print(s.platoon.vehicles[4].get_result())
+    s.platoon.vehicles[0].save_black_box('black_box_c_v0.csv')
+    s.platoon.vehicles[1].save_black_box('black_box_c_v1.csv')
+    s.platoon.vehicles[2].save_black_box('black_box_c_v2.csv')
+    s.platoon.vehicles[3].save_black_box('black_box_c_v3.csv')
+    s.platoon.vehicles[4].save_black_box('black_box_c_v4.csv')
     input("Press Enter to exit...")
