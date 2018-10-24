@@ -50,14 +50,14 @@ Sample points:
 import numpy as np
 
 def _drag_reduction_ratio(distance_to_front_car):
-    # All units are imperial unit.
+    # All units are metric unit.
     # Estimated with http://www.academia.edu/7968462/The_Aerodynamic_Performance_Of_Platoons_A_Final_Report
     __length_of_vehicle = 4.445  # This is only used to calculate air reduction. Not for collision.
     return 1 - 0.42537*2.718**(-0.86798*(distance_to_front_car / __length_of_vehicle))
     
 
 def fuel_consumption(accelration, velocty, distance_to_front_car, delta_t):
-    # All units are imperial unit.
+    # All units are metric unit.
     __rho_a = 1.2  # Estimated density of air at 20 deg C above sea level
     __CdA = 0.682  # Drag area in m^2 of the 2001 civic sedan https://en.wikipedia.org/wiki/Automobile_drag_coefficient
     __E_drag = (0.5*__rho_a*velocty**3*__CdA*_drag_reduction_ratio(distance_to_front_car)*delta_t) # Energy cost by air drag
