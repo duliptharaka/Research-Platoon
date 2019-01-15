@@ -188,7 +188,7 @@ class FollowingVehicleUKF(FollowingVehicleFilterBase):
         self.kf = UnscentedKalmanFilter(9, 108, self.delta_t, fx=self.fx, hx=self.hx, points=points)
         #self.Q_factor = 10
         #self.Q_factor_power = 1
-        self.kf.Q = Q_discrete_white_noise(3, dt=0.1, var=1e-2, block_size=3)
+        self.kf.Q = Q_discrete_white_noise(3, dt=self.delta_t, var=1e-2, block_size=3)
         self.kf.R *= max(np.median(self.vehicle.observation_noises.sigma**2),1e-16)
         self.kf.x = np.concatenate((self.vehicle.ground_truth,self.vehicle.ground_truth,self.vehicle.ground_truth))
         self.kf.x[0] += self.vehicle.safty_dist
@@ -309,7 +309,7 @@ class LastVehicleUKF(LastVehicleFilterAverage):
         self.kf = UnscentedKalmanFilter(6, 39, self.delta_t, fx=self.fx, hx=self.hx, points=points)
         #self.Q_factor = 10
         #self.Q_factor_power = 1
-        self.kf.Q = Q_discrete_white_noise(3, dt=0.1, var=1e-2, block_size=2)
+        self.kf.Q = Q_discrete_white_noise(3, dt=self.delta_t, var=1e-2, block_size=2)
         #print(self.kf.R,'RRR')
         self.kf.R *= max(np.median(self.vehicle.observation_noises.sigma**2),1e-16)
         self.kf.x = np.concatenate((self.vehicle.ground_truth,self.vehicle.ground_truth))
